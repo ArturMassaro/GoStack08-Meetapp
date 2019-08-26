@@ -81,6 +81,10 @@ class OrganizationController {
       return res.status(401).json({ error: 'you only can edit yours meetups' });
     }
 
+    if (isBefore(parseISO(meetup.date), new Date())) {
+      return res.status(400).json({ error: 'Past dates not permitted' });
+    }
+
     meetup.destroy();
     return res.send('Meetup has been excluded');
   }
