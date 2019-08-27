@@ -1,6 +1,9 @@
 import { isBefore } from 'date-fns';
 import Meetup from '../models/Meetup';
 import Subscription from '../models/Subscription';
+import User from '../models/User';
+import SubcriptionMail from '../jobs/SubcriptionMail';
+import Queue from '../../lib/Queue';
 
 class SubscriptionController {
   async store(req, res) {
@@ -28,13 +31,23 @@ class SubscriptionController {
       ],
     });
 
-    if (subscriptions) {
-      return res.status(400).json({ error: 'this date is already in use' });
-    }
+    // if (subscriptions) {
+    //   return res.status(400).json({ error: 'this date is already in use' });
+    // }
 
     const subscription = await Subscription.create({
       meetup_id,
       user_id: req.userId,
+    });
+
+    const user = await User.findByPk(subscription.user_id);
+    const userOrg = await User.findByPk(meetup.user_id);
+
+    Queue.add(SubcriptionMail.key, {
+      user: user.name,
+      meetup: meetup.title,
+      orgEmail: userOrg.email,
+      orgUser: userOrg.name,
     });
 
     return res.json(subscription);
