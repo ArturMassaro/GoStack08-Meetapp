@@ -3,20 +3,32 @@ import { parseISO, isBefore, startOfDay, endOfDay } from 'date-fns';
 import { Op } from 'sequelize';
 
 import Meetup from '../models/Meetup';
+import File from '../models/File';
 
 class MeetupController {
   async index(req, res) {
     const { page, date } = req.query;
     const correctDate = parseISO(date);
 
+    // const meetups = await Meetup.findAll({
+    //   where: {
+    //     date: {
+    //       [Op.between]: [startOfDay(correctDate), endOfDay(correctDate)],
+    //     },
+    //   },
+    //   limit: 10,
+    //   offset: (page - 1) * 10,
+    //   order: ['date'],
+    // });
+
     const meetups = await Meetup.findAll({
-      where: {
-        date: {
-          [Op.between]: [startOfDay(correctDate), endOfDay(correctDate)],
+      include: [
+        {
+          model: File,
+          as: 'banner',
+          attributes: ['name', 'path', 'url'],
         },
-      },
-      limit: 10,
-      offset: (page - 1) * 10,
+      ],
       order: ['date'],
     });
 
